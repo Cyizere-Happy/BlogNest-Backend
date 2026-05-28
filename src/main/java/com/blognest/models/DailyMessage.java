@@ -10,7 +10,12 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "daily_messages")
+@Table(
+        name = "daily_messages",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"date"})
+        }
+)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -25,10 +30,10 @@ public class DailyMessage {
     @Column(nullable = false)
     private String title;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", nullable = false)
     private String message;
 
-    @Column(unique = true)
+    @Column(nullable = false)
     private LocalDate date;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>New Article</title>
+</head>
+
+<body style="font-family: Arial; background-color: #f4f4f4; padding: 20px;">
+
+<div style="max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 10px;">
+
+    <h2 style="color: #2c3e50;">
+        New Article Published 🚀
+    </h2>
+
+    <p style="font-size: 16px;">
+        Hello <b th:text="${username}">User</b>,
+    </p>
+
+    <p>
+        A new article has just been published:
+    </p>
+
+    <h3 th:text="${title}" style="color: #3498db;"></h3>
+
+    <p th:text="${excerpt}"></p>
+
+    <a th:href="${url}"
+       style="display: inline-block; padding: 10px 15px; background: #3498db;
+              color: white; text-decoration: none; border-radius: 5px;">
+        Read Full Article
+    </a>
+
+</div>
+
+</body>
+</html>
