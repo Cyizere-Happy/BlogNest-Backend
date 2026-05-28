@@ -1,0 +1,37 @@
+package com.blognest.models;
+
+import com.blognest.models.User;
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+@Entity
+@Table(name = "notifications")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Notification {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
+    private String title;
+
+    @Column(columnDefinition = "TEXT")
+    private String message;
+
+    private boolean readStatus = false;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "receiver_id")
+    private User receiver;
+
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+}
