@@ -8,6 +8,7 @@ import com.blognest.models.enums.NotificationType;
 import com.blognest.models.User;
 import com.blognest.repositories.NotificationRepository;
 import com.blognest.repositories.UserRepository;
+import com.blognest.services.AuthService;
 import com.blognest.services.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
+    private final AuthService authService;
 
     @Override
     public void createNotification(
@@ -29,7 +31,6 @@ public class NotificationServiceImpl implements NotificationService {
             String message,
             NotificationType type
     ) {
-
         User receiver = userRepository.findById(receiverId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
@@ -45,7 +46,8 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public List<NotificationResponse> getUserNotifications(UUID userId) {
+    public List<NotificationResponse> getUserNotifications() {
+        UUID userId = authService.getCurrentUserId();
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -57,7 +59,8 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public List<NotificationResponse> getUnreadNotifications(UUID userId) {
+    public List<NotificationResponse> getUnreadNotifications() {
+        UUID userId = authService.getCurrentUserId();
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -69,7 +72,8 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public List<NotificationResponse> getNotificationsByType(UUID userId, NotificationType type) {
+    public List<NotificationResponse> getNotificationsByType(NotificationType type) {
+        UUID userId = authService.getCurrentUserId();
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -82,17 +86,16 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public void markAsRead(UUID notificationId) {
-
         Notification notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Notification not found"));
 
         notification.setRead(true);
-
         notificationRepository.save(notification);
     }
 
     @Override
-    public void markAllAsRead(UUID userId) {
+    public void markAllAsRead() {
+        UUID userId = authService.getCurrentUserId();
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -101,7 +104,6 @@ public class NotificationServiceImpl implements NotificationService {
                 notificationRepository.findByReceiverAndReadFalse(user);
 
         notifications.forEach(n -> n.setRead(true));
-
         notificationRepository.saveAll(notifications);
     }
 }

@@ -56,19 +56,26 @@ public class JwtServiceImpl implements JwtService {
     }
 
     @Override
+    public String generateVerificationToken(String username) {
+        return Jwts.builder()
+                .subject(username)
+                .issuedAt(new java.util.Date())
+                .expiration(new java.util.Date(System.currentTimeMillis() + 24 * 60 * 60 * 1000)) // 24 hours
+                .signWith(getSigningKey(), Jwts.SIG.HS512)
+                .compact();
+    }
+
+    @Override
     @Transactional
     public String generateRefreshToken(User user) {
-        // Delete existing token if any
-        refreshTokenRepository.deleteByUser(user);
-
         String token = UUID.randomUUID().toString().replace("-", "");
         
-        RefreshToken refreshToken = RefreshToken.builder()
-                .user(user)
-                .token(token)
-                .expiresAt(LocalDateTime.now().plusDays(refreshExpirationDays))
-                .revoked(false)
-                .build();
+        RefreshToken refreshToken = refreshTokenRepository.findByUserId(user.getId())
+                .orElseGet(() -> RefreshToken.builder().user(user).build());
+
+        refreshToken.setToken(token);
+        refreshToken.setExpiresAt(LocalDateTime.now().plusDays(refreshExpirationDays));
+        refreshToken.setRevoked(false);
 
         refreshTokenRepository.save(refreshToken);
         return token;

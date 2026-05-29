@@ -12,6 +12,7 @@ import com.blognest.repositories.*;
 import com.blognest.services.EmailService;
 import com.blognest.services.NotificationService;
 import com.blognest.services.ArticleService;
+import com.blognest.services.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -32,10 +33,12 @@ public class ArticleServiceImpl implements ArticleService {
     private final NotificationService notificationService;
     private final EmailService emailService;
     private final TagRepository tagRepository;
+    private final AuthService authService;
 
     @Override
     @Transactional
-    public ArticleResponse createArticle(UUID authorId, CreateArticleRequest request) {
+    public ArticleResponse createArticle(CreateArticleRequest request) {
+        UUID authorId = authService.getCurrentUserId();
         User author = userRepository.findById(authorId)
                 .orElseThrow(() -> new ResourceNotFoundException("Author not found"));
 

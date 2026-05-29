@@ -17,6 +17,8 @@ public class UserMapper {
                 .bio(request.getBio())
                 .profileImage(request.getProfileImage())
                 .role(Role.USER)
+                .active(false)
+                .verified(false)
                 .build();
     }
 

@@ -21,25 +21,23 @@ public class SubscriptionController {
 
     private final SubscriptionService subscriptionService;
 
-    // POST /api/subscriptions?subscriberId={uuid}&writerId={uuid}
+    // POST /api/subscriptions?writerId={uuid}
     @PostMapping
-    @PreAuthorize("hasRole('SUPERADMIN') or @securityEvaluator.isSelf(#subscriberId)")
-    @Operation(summary = "Subscribe to writer", description = "Subscribes a user to updates from a specific writer.")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Subscribe to writer", description = "Subscribes the authenticated user to updates from a specific writer.")
     public ResponseEntity<SubscriptionResponse> subscribe(
-            @RequestParam UUID subscriberId,
             @RequestParam UUID writerId) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(subscriptionService.subscribe(subscriberId, writerId));
+                .body(subscriptionService.subscribe(writerId));
     }
 
-    // DELETE /api/subscriptions?subscriberId={uuid}&writerId={uuid}
+    // DELETE /api/subscriptions?writerId={uuid}
     @DeleteMapping
-    @PreAuthorize("hasRole('SUPERADMIN') or @securityEvaluator.isSelf(#subscriberId)")
-    @Operation(summary = "Unsubscribe from writer", description = "Unsubscribes a user from updates from a specific writer.")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Unsubscribe from writer", description = "Unsubscribes the authenticated user from updates from a specific writer.")
     public ResponseEntity<com.blognest.dtos.ApiResponse> unsubscribe(
-            @RequestParam UUID subscriberId,
             @RequestParam UUID writerId) {
-        subscriptionService.unsubscribe(subscriberId, writerId);
+        subscriptionService.unsubscribe(writerId);
         return ResponseEntity.ok(com.blognest.dtos.ApiResponse.builder()
                 .success(true)
                 .message("Unsubscribed successfully.")
@@ -55,12 +53,11 @@ public class SubscriptionController {
         return ResponseEntity.ok(subscriptionService.getWriterSubscribers(writerId));
     }
 
-    // GET /api/subscriptions/user/{subscriberId}/following
-    @GetMapping("/user/{subscriberId}/following")
-    @PreAuthorize("hasRole('SUPERADMIN') or @securityEvaluator.isSelf(#subscriberId)")
-    @Operation(summary = "Get subscribed writers", description = "Retrieves all subscriptions (writers followed) for a user.")
-    public ResponseEntity<List<SubscriptionResponse>> getUserSubscriptions(
-            @PathVariable UUID subscriberId) {
-        return ResponseEntity.ok(subscriptionService.getUserSubscriptions(subscriberId));
+    // GET /api/subscriptions/me/following
+    @GetMapping("/me/following")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Get my subscriptions", description = "Retrieves all writers the authenticated user is subscribed to.")
+    public ResponseEntity<List<SubscriptionResponse>> getMySubscriptions() {
+        return ResponseEntity.ok(subscriptionService.getUserSubscriptions());
     }
 }

@@ -7,11 +7,11 @@ import java.util.UUID;
 
 public interface BookmarkService {
 
-    BookmarkResponse addBookmark(UUID userId, UUID articleId);
+    BookmarkResponse addBookmark(UUID articleId);
 
-    void removeBookmark(UUID userId, UUID articleId);
+    void removeBookmark(UUID articleId);
 
-    List<BookmarkResponse> getUserBookmarks(UUID userId);
+    List<BookmarkResponse> getUserBookmarks();
 
-    boolean isBookmarked(UUID userId, UUID articleId);
+    boolean isBookmarked(UUID articleId);
 }

@@ -8,6 +8,7 @@ import com.blognest.models.enums.NotificationType;
 import com.blognest.repositories.*;
 import com.blognest.services.NotificationService;
 import com.blognest.services.SubmissionService;
+import com.blognest.services.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -22,9 +23,11 @@ public class SubmissionServiceImpl implements SubmissionService {
     private final UserRepository userRepository;
     private final CompetitionRepository competitionRepository;
     private final NotificationService notificationService;
+    private final AuthService authService;
 
     @Override
-    public SubmissionResponse submit(UUID writerId, UUID competitionId, CreateSubmissionRequest request) {
+    public SubmissionResponse submit(UUID competitionId, CreateSubmissionRequest request) {
+        UUID writerId = authService.getCurrentUserId();
 
         User writer = userRepository.findById(writerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Writer not found"));

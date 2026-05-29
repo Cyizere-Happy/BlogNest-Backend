@@ -11,6 +11,8 @@ public interface UserService {
 
     UserResponse createUser(CreateUserRequest request);
 
+    UserResponse createUser(CreateUserRequest request, String inviteToken);
+
     List<UserResponse> getAllUsers();
 
     UserResponse getUserById(UUID id);

@@ -27,12 +27,18 @@ public class CommentController {
     private final RateLimiterService rateLimiterService;
     private final AuthService authService;
 
+    @org.springframework.beans.factory.annotation.Value("${rate-limit.comment.max:10}")
+    private int commentMaxAttempts;
+
+    @org.springframework.beans.factory.annotation.Value("${rate-limit.comment.seconds:60}")
+    private long commentWindowSeconds;
+
     @PostMapping
     @Operation(summary = "Create comment", description = "Posts a new comment or reply on an article.")
     public ResponseEntity<CommentResponse> createComment(
             @RequestBody CreateCommentRequest request) {
         UUID userId = authService.getCurrentUserId();
-        if (!rateLimiterService.tryConsume("comment:" + userId, 10, 60)) {
+        if (!rateLimiterService.tryConsume("comment:" + userId, commentMaxAttempts, commentWindowSeconds)) {
             throw new com.blognest.exceptions.TooManyRequestsException("Too many comment requests. Please wait before posting again.");
         }
         return ResponseEntity.status(HttpStatus.CREATED)

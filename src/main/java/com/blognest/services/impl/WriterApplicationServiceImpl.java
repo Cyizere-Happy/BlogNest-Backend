@@ -12,6 +12,7 @@ import com.blognest.repositories.UserRepository;
 import com.blognest.services.EmailService;
 import com.blognest.services.NotificationService;
 import com.blognest.services.WriterApplicationService;
+import com.blognest.services.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
@@ -27,9 +28,11 @@ public class WriterApplicationServiceImpl implements WriterApplicationService {
     private final UserRepository userRepository;
     private final NotificationService notificationService;
     private final EmailService emailService;
+    private final AuthService authService;
 
     @Override
-    public WriterApplicationResponse apply(UUID userId, CreateWriterApplicationRequest request) {
+    public WriterApplicationResponse apply(CreateWriterApplicationRequest request) {
+        UUID userId = authService.getCurrentUserId();
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));

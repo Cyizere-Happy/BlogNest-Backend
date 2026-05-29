@@ -3,6 +3,7 @@ package com.blognest.controllers;
 import com.blognest.dtos.UserResponse;
 import com.blognest.dtos.CreateUserRequest;
 import com.blognest.dtos.UpdateUserRequest;
+import com.blognest.services.AuthService;
 import com.blognest.services.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,6 +23,7 @@ import java.util.UUID;
 public class UserController {
 
     private final UserService userService;
+    private final AuthService authService;
 
     // POST /api/users
     @PostMapping
@@ -38,6 +40,14 @@ public class UserController {
     @Operation(summary = "Get all users", description = "Retrieves a list of all registered users.")
     public ResponseEntity<List<UserResponse>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
+    }
+
+    // GET /api/users/me
+    @GetMapping("/me")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Get my profile", description = "Retrieves the profile of the currently authenticated user. No ID required — resolved from JWT.")
+    public ResponseEntity<UserResponse> getMe() {
+        return ResponseEntity.ok(userService.getUserById(authService.getCurrentUserId()));
     }
 
     // GET /api/users/{id}

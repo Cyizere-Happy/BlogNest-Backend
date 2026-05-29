@@ -7,11 +7,11 @@ import java.util.UUID;
 
 public interface SubscriptionService {
 
-    SubscriptionResponse subscribe(UUID subscriberId, UUID writerId);
+    SubscriptionResponse subscribe(UUID writerId);
 
-    void unsubscribe(UUID subscriberId, UUID writerId);
+    void unsubscribe(UUID writerId);
 
     List<SubscriptionResponse> getWriterSubscribers(UUID writerId);
 
-    List<SubscriptionResponse> getUserSubscriptions(UUID subscriberId);
+    List<SubscriptionResponse> getUserSubscriptions();
 }

@@ -25,15 +25,14 @@ public class ArticleController {
 
     private final ArticleService articleService;
 
-    // POST /api/articles?authorId={uuid}
+    // POST /api/articles
     @PostMapping
-    @PreAuthorize("hasRole('SUPERADMIN') or (hasRole('ADMIN') and @securityEvaluator.isSelf(#authorId))")
-    @Operation(summary = "Create article", description = "Creates a new article post authored by the specified user ID.")
+    @PreAuthorize("hasRole('SUPERADMIN') or hasRole('ADMIN')")
+    @Operation(summary = "Create article", description = "Creates a new article post. The author is resolved automatically from the JWT token.")
     public ResponseEntity<ArticleResponse> createArticle(
-            @RequestParam UUID authorId,
             @RequestBody CreateArticleRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(articleService.createArticle(authorId, request));
+                .body(articleService.createArticle(request));
     }
 
     // GET /api/articles

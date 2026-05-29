@@ -10,6 +10,7 @@ import com.blognest.repositories.InviteRepository;
 import com.blognest.repositories.UserRepository;
 import com.blognest.services.EmailService;
 import com.blognest.services.InviteService;
+import com.blognest.services.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
@@ -25,9 +26,11 @@ public class InviteServiceImpl implements InviteService {
     private final InviteRepository inviteRepository;
     private final UserRepository userRepository;
     private final EmailService emailService;
+    private final AuthService authService;
 
     @Override
-    public InviteResponse sendInvite(UUID adminId, CreateInviteRequest request) {
+    public InviteResponse sendInvite(CreateInviteRequest request) {
+        UUID adminId = authService.getCurrentUserId();
 
         User admin = userRepository.findById(adminId)
                 .orElseThrow(() -> new ResourceNotFoundException("Admin not found"));

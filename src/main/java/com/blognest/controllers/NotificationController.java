@@ -21,32 +21,29 @@ public class NotificationController {
 
     private final NotificationService notificationService;
 
-    // GET /api/notifications/user/{userId}
-    @GetMapping("/user/{userId}")
-    @PreAuthorize("hasRole('SUPERADMIN') or @securityEvaluator.isSelf(#userId)")
-    @Operation(summary = "Get user notifications", description = "Retrieves all notifications for a specific user.")
-    public ResponseEntity<List<NotificationResponse>> getUserNotifications(
-            @PathVariable UUID userId) {
-        return ResponseEntity.ok(notificationService.getUserNotifications(userId));
+    // GET /api/notifications/me
+    @GetMapping("/me")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Get my notifications", description = "Retrieves all notifications for the authenticated user.")
+    public ResponseEntity<List<NotificationResponse>> getMyNotifications() {
+        return ResponseEntity.ok(notificationService.getUserNotifications());
     }
 
-    // GET /api/notifications/user/{userId}/unread
-    @GetMapping("/user/{userId}/unread")
-    @PreAuthorize("hasRole('SUPERADMIN') or @securityEvaluator.isSelf(#userId)")
-    @Operation(summary = "Get unread notifications", description = "Retrieves only unread notifications for a specific user.")
-    public ResponseEntity<List<NotificationResponse>> getUnreadNotifications(
-            @PathVariable UUID userId) {
-        return ResponseEntity.ok(notificationService.getUnreadNotifications(userId));
+    // GET /api/notifications/me/unread
+    @GetMapping("/me/unread")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Get my unread notifications", description = "Retrieves only unread notifications for the authenticated user.")
+    public ResponseEntity<List<NotificationResponse>> getMyUnreadNotifications() {
+        return ResponseEntity.ok(notificationService.getUnreadNotifications());
     }
 
-    // GET /api/notifications/user/{userId}/type/{type}
-    @GetMapping("/user/{userId}/type/{type}")
-    @PreAuthorize("hasRole('SUPERADMIN') or @securityEvaluator.isSelf(#userId)")
-    @Operation(summary = "Get notifications by type", description = "Retrieves notifications filtered by type for a specific user.")
-    public ResponseEntity<List<NotificationResponse>> getNotificationsByType(
-            @PathVariable UUID userId,
+    // GET /api/notifications/me/type/{type}
+    @GetMapping("/me/type/{type}")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Get my notifications by type", description = "Retrieves notifications filtered by type for the authenticated user.")
+    public ResponseEntity<List<NotificationResponse>> getMyNotificationsByType(
             @PathVariable NotificationType type) {
-        return ResponseEntity.ok(notificationService.getNotificationsByType(userId, type));
+        return ResponseEntity.ok(notificationService.getNotificationsByType(type));
     }
 
     // PATCH /api/notifications/{id}/read
@@ -61,12 +58,12 @@ public class NotificationController {
                 .build());
     }
 
-    // PATCH /api/notifications/user/{userId}/read-all
-    @PatchMapping("/user/{userId}/read-all")
-    @PreAuthorize("hasRole('SUPERADMIN') or @securityEvaluator.isSelf(#userId)")
-    @Operation(summary = "Mark all notifications as read", description = "Marks all unread notifications for a user as read.")
-    public ResponseEntity<com.blognest.dtos.ApiResponse> markAllAsRead(@PathVariable UUID userId) {
-        notificationService.markAllAsRead(userId);
+    // PATCH /api/notifications/me/read-all
+    @PatchMapping("/me/read-all")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Mark all my notifications as read", description = "Marks all unread notifications for the authenticated user as read.")
+    public ResponseEntity<com.blognest.dtos.ApiResponse> markAllAsRead() {
+        notificationService.markAllAsRead();
         return ResponseEntity.ok(com.blognest.dtos.ApiResponse.builder()
                 .success(true)
                 .message("All notifications marked as read successfully.")

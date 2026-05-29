@@ -22,16 +22,15 @@ public class SubmissionController {
 
     private final SubmissionService submissionService;
 
-    // POST /api/submissions?writerId={uuid}&competitionId={uuid}
+    // POST /api/submissions?competitionId={uuid}
     @PostMapping
-    @PreAuthorize("hasRole('SUPERADMIN') or @securityEvaluator.isSelf(#writerId)")
-    @Operation(summary = "Submit to competition", description = "Submits a story/article to an active writing competition.")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Submit to competition", description = "Submits a story/article to an active writing competition. The writer is resolved automatically from the JWT token.")
     public ResponseEntity<SubmissionResponse> submit(
-            @RequestParam UUID writerId,
             @RequestParam UUID competitionId,
             @RequestBody CreateSubmissionRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(submissionService.submit(writerId, competitionId, request));
+                .body(submissionService.submit(competitionId, request));
     }
 
     // GET /api/submissions/competition/{competitionId}

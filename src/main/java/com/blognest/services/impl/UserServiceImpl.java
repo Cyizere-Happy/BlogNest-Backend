@@ -7,8 +7,10 @@ import com.blognest.dtos.CreateUserRequest;
 import com.blognest.dtos.UpdateUserRequest;
 import com.blognest.dtos.UserResponse;
 import com.blognest.models.User;
+import com.blognest.models.Invite;
 import com.blognest.mappers.UserMapper;
 import com.blognest.repositories.UserRepository;
+import com.blognest.repositories.InviteRepository;
 import com.blognest.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,12 +25,19 @@ import java.util.UUID;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final InviteRepository inviteRepository;
     private final PasswordEncoder passwordEncoder;
     private final com.blognest.services.AuthService authService;
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
 
     @Override
     public UserResponse createUser(CreateUserRequest request) {
+        return createUser(request, null);
+    }
+
+    @Override
+    @Transactional
+    public UserResponse createUser(CreateUserRequest request, String inviteToken) {
 
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new DuplicateResourceException("Email already exists");
@@ -38,8 +47,44 @@ public class UserServiceImpl implements UserService {
             throw new DuplicateResourceException("Username already exists");
         }
 
+        com.blognest.models.enums.Role role = com.blognest.models.enums.Role.USER;
+        Invite invite = null;
+
+        if (inviteToken != null && !inviteToken.trim().isEmpty()) {
+            invite = inviteRepository.findByToken(inviteToken)
+                    .orElseThrow(() -> new ResourceNotFoundException("Invalid or non-existent invite token"));
+        } else {
+            // fallback: find by email if any active invite exists
+            var inviteOpt = inviteRepository.findByEmail(request.getEmail());
+            if (inviteOpt.isPresent() && !inviteOpt.get().isUsed() &&
+                    (inviteOpt.get().getExpiresAt() == null || inviteOpt.get().getExpiresAt().isAfter(java.time.LocalDateTime.now()))) {
+                invite = inviteOpt.get();
+            }
+        }
+
+        if (invite != null) {
+            if (invite.isUsed()) {
+                throw new IllegalStateException("This invite has already been used");
+            }
+            if (invite.getExpiresAt() != null && invite.getExpiresAt().isBefore(java.time.LocalDateTime.now())) {
+                throw new IllegalStateException("This invite has expired");
+            }
+            if (!invite.getEmail().equalsIgnoreCase(request.getEmail())) {
+                throw new IllegalArgumentException("Registration email does not match invite email");
+            }
+            role = invite.getRole();
+            invite.setUsed(true);
+            inviteRepository.save(invite);
+        }
+
         User user = UserMapper.toEntity(request);
+        user.setRole(role);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+
+        if (invite != null) {
+            user.setActive(true);
+            user.setVerified(true);
+        }
 
         User savedUser = userRepository.save(user);
 
