@@ -12,7 +12,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/invites")
@@ -22,15 +21,14 @@ public class InviteController {
 
     private final InviteService inviteService;
 
-    // POST /api/invites?adminId={uuid}
+    // POST /api/invites
     @PostMapping
-    @PreAuthorize("hasRole('SUPERADMIN') and @securityEvaluator.isSelf(#adminId)")
-    @Operation(summary = "Send invite", description = "Generates and sends an invite token to a user's email address (restricted to administrators).")
+    @PreAuthorize("hasRole('SUPERADMIN')")
+    @Operation(summary = "Send invite", description = "Generates and sends an invite token to a user's email address. The sender is resolved automatically from the JWT token.")
     public ResponseEntity<InviteResponse> sendInvite(
-            @RequestParam UUID adminId,
             @RequestBody CreateInviteRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(inviteService.sendInvite(adminId, request));
+                .body(inviteService.sendInvite(request));
     }
 
     // GET /api/invites/validate?token={token}

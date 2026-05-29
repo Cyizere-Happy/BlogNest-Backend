@@ -8,7 +8,7 @@ import java.util.UUID;
 
 public interface SubmissionService {
 
-    SubmissionResponse submit(UUID writerId, UUID competitionId, CreateSubmissionRequest request);
+    SubmissionResponse submit(UUID competitionId, CreateSubmissionRequest request);
 
     List<SubmissionResponse> getByCompetition(UUID competitionId);
 

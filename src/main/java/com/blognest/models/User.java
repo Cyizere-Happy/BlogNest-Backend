@@ -39,6 +39,7 @@ public class User {
 
     private boolean verified = false;
 
+    @Builder.Default
     private boolean active = true;
 
     public boolean isEnabled() {
@@ -52,6 +53,7 @@ public class User {
     private boolean credentialsExpired = false;
 
     @Enumerated(EnumType.STRING)
+    @Builder.Default
     private Role role = Role.USER;
 
     @CreationTimestamp

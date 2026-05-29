@@ -22,15 +22,14 @@ public class WriterApplicationController {
 
     private final WriterApplicationService writerApplicationService;
 
-    // POST /api/writer-applications?userId={uuid}
+    // POST /api/writer-applications
     @PostMapping
-    @PreAuthorize("hasRole('SUPERADMIN') or @securityEvaluator.isSelf(#userId)")
-    @Operation(summary = "Submit application", description = "Submits a new writer application for a user.")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Submit application", description = "Submits a new writer application. The applicant is resolved automatically from the JWT token.")
     public ResponseEntity<WriterApplicationResponse> apply(
-            @RequestParam UUID userId,
             @RequestBody CreateWriterApplicationRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(writerApplicationService.apply(userId, request));
+                .body(writerApplicationService.apply(request));
     }
 
     // GET /api/writer-applications

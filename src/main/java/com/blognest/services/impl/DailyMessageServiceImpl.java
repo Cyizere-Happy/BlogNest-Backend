@@ -10,6 +10,7 @@ import com.blognest.repositories.UserRepository;
 import com.blognest.services.DailyMessageService;
 import com.blognest.services.EmailService;
 import com.blognest.services.NotificationService;
+import com.blognest.services.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
@@ -26,9 +27,11 @@ public class DailyMessageServiceImpl implements DailyMessageService {
     private final UserRepository userRepository;
     private final NotificationService notificationService;
     private final EmailService emailService;
+    private final AuthService authService;
 
     @Override
-    public DailyMessageResponse createMessage(UUID adminId, CreateDailyMessageRequest request) {
+    public DailyMessageResponse createMessage(CreateDailyMessageRequest request) {
+        UUID adminId = authService.getCurrentUserId();
 
         User admin = userRepository.findById(adminId)
                 .orElseThrow(() -> new ResourceNotFoundException("Admin not found"));

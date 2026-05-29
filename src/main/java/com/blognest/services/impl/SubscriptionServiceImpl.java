@@ -8,6 +8,7 @@ import com.blognest.models.Subscription;
 import com.blognest.models.User;
 import com.blognest.repositories.SubscriptionRepository;
 import com.blognest.repositories.UserRepository;
+import com.blognest.services.AuthService;
 import com.blognest.services.SubscriptionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,10 +22,12 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
     private final SubscriptionRepository subscriptionRepository;
     private final UserRepository userRepository;
+    private final AuthService authService;
 
     // SUBSCRIBE
     @Override
-    public SubscriptionResponse subscribe(UUID subscriberId, UUID writerId) {
+    public SubscriptionResponse subscribe(UUID writerId) {
+        UUID subscriberId = authService.getCurrentUserId();
 
         if (subscriberId.equals(writerId)) {
             throw new IllegalArgumentException("You cannot subscribe to yourself");
@@ -53,7 +56,8 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
     // UNSUBSCRIBE
     @Override
-    public void unsubscribe(UUID subscriberId, UUID writerId) {
+    public void unsubscribe(UUID writerId) {
+        UUID subscriberId = authService.getCurrentUserId();
 
         User subscriber = userRepository.findById(subscriberId)
                 .orElseThrow(() -> new ResourceNotFoundException("Subscriber not found"));
@@ -83,7 +87,8 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
     // GET USER FOLLOWING
     @Override
-    public List<SubscriptionResponse> getUserSubscriptions(UUID subscriberId) {
+    public List<SubscriptionResponse> getUserSubscriptions() {
+        UUID subscriberId = authService.getCurrentUserId();
 
         User subscriber = userRepository.findById(subscriberId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));

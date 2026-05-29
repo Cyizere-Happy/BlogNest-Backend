@@ -8,10 +8,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/daily-messages")
@@ -21,14 +21,14 @@ public class DailyMessageController {
 
     private final DailyMessageService dailyMessageService;
 
-    // POST /api/daily-messages?adminId={uuid}
+    // POST /api/daily-messages
     @PostMapping
-    @Operation(summary = "Create daily message", description = "Creates a new daily broadcast message (restricted to administrators).")
+    @PreAuthorize("hasRole('SUPERADMIN')")
+    @Operation(summary = "Create daily message", description = "Creates a new daily broadcast message. The sender is resolved automatically from the JWT token.")
     public ResponseEntity<DailyMessageResponse> createMessage(
-            @RequestParam UUID adminId,
             @RequestBody CreateDailyMessageRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(dailyMessageService.createMessage(adminId, request));
+                .body(dailyMessageService.createMessage(request));
     }
 
     // GET /api/daily-messages

@@ -11,7 +11,7 @@ import java.util.UUID;
 
 public interface ArticleService {
 
-    ArticleResponse createArticle(UUID authorId, CreateArticleRequest request);
+    ArticleResponse createArticle(CreateArticleRequest request);
 
     Page<ArticleResponse> getAllArticles(Pageable pageable);
 

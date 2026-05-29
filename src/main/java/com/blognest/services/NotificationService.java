@@ -15,13 +15,13 @@ public interface NotificationService {
             NotificationType type
     );
 
-    List<NotificationResponse> getUserNotifications(UUID userId);
+    List<NotificationResponse> getUserNotifications();
 
-    List<NotificationResponse> getUnreadNotifications(UUID userId);
+    List<NotificationResponse> getUnreadNotifications();
 
-    List<NotificationResponse> getNotificationsByType(UUID userId, NotificationType type);
+    List<NotificationResponse> getNotificationsByType(NotificationType type);
 
     void markAsRead(UUID notificationId);
 
-    void markAllAsRead(UUID userId);
+    void markAllAsRead();
 }

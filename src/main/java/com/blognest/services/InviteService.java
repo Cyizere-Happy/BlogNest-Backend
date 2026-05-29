@@ -8,7 +8,7 @@ import java.util.UUID;
 
 public interface InviteService {
 
-    InviteResponse sendInvite(UUID adminId, CreateInviteRequest request);
+    InviteResponse sendInvite(CreateInviteRequest request);
 
     InviteResponse validateInvite(String token);
 

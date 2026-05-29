@@ -8,7 +8,7 @@ import java.util.UUID;
 
 public interface DailyMessageService {
 
-    DailyMessageResponse createMessage(UUID adminId, CreateDailyMessageRequest request);
+    DailyMessageResponse createMessage(CreateDailyMessageRequest request);
 
     List<DailyMessageResponse> getAllMessages();
 

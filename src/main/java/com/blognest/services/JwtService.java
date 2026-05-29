@@ -20,4 +20,6 @@ public interface JwtService {
     boolean isTokenExpired(String token);
 
     boolean validateToken(String token, String expectedUsername);
+
+    String generateVerificationToken(String username);
 }

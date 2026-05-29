@@ -8,7 +8,7 @@ import java.util.UUID;
 
 public interface WriterApplicationService {
 
-    WriterApplicationResponse apply(UUID userId, CreateWriterApplicationRequest request);
+    WriterApplicationResponse apply(CreateWriterApplicationRequest request);
 
     List<WriterApplicationResponse> getAllApplications();
 

@@ -21,46 +21,43 @@ public class BookmarkController {
 
     private final BookmarkService bookmarkService;
 
-    // POST /api/bookmarks?userId={uuid}&articleId={uuid}
+    // POST /api/bookmarks?articleId={uuid}
     @PostMapping
-    @PreAuthorize("hasRole('SUPERADMIN') or @securityEvaluator.isSelf(#userId)")
-    @Operation(summary = "Add bookmark", description = "Bookmarks an article for a user.")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Add bookmark", description = "Bookmarks an article for the authenticated user.")
     public ResponseEntity<BookmarkResponse> addBookmark(
-            @RequestParam UUID userId,
             @RequestParam UUID articleId) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(bookmarkService.addBookmark(userId, articleId));
+                .body(bookmarkService.addBookmark(articleId));
     }
 
-    // DELETE /api/bookmarks?userId={uuid}&articleId={uuid}
+    // DELETE /api/bookmarks?articleId={uuid}
     @DeleteMapping
-    @PreAuthorize("hasRole('SUPERADMIN') or @securityEvaluator.isSelf(#userId)")
-    @Operation(summary = "Remove bookmark", description = "Removes a bookmarked article for a user.")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Remove bookmark", description = "Removes a bookmarked article for the authenticated user.")
     public ResponseEntity<com.blognest.dtos.ApiResponse> removeBookmark(
-            @RequestParam UUID userId,
             @RequestParam UUID articleId) {
-        bookmarkService.removeBookmark(userId, articleId);
+        bookmarkService.removeBookmark(articleId);
         return ResponseEntity.ok(com.blognest.dtos.ApiResponse.builder()
                 .success(true)
                 .message("Bookmark removed successfully.")
                 .build());
     }
 
-    // GET /api/bookmarks/user/{userId}
-    @GetMapping("/user/{userId}")
-    @PreAuthorize("hasRole('SUPERADMIN') or @securityEvaluator.isSelf(#userId)")
-    @Operation(summary = "Get user bookmarks", description = "Retrieves all bookmarked articles for a specific user.")
-    public ResponseEntity<List<BookmarkResponse>> getUserBookmarks(@PathVariable UUID userId) {
-        return ResponseEntity.ok(bookmarkService.getUserBookmarks(userId));
+    // GET /api/bookmarks/me
+    @GetMapping("/me")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Get my bookmarks", description = "Retrieves all bookmarked articles for the currently authenticated user.")
+    public ResponseEntity<List<BookmarkResponse>> getMyBookmarks() {
+        return ResponseEntity.ok(bookmarkService.getUserBookmarks());
     }
 
-    // GET /api/bookmarks/check?userId={uuid}&articleId={uuid}
+    // GET /api/bookmarks/check?articleId={uuid}
     @GetMapping("/check")
-    @PreAuthorize("hasRole('SUPERADMIN') or @securityEvaluator.isSelf(#userId)")
-    @Operation(summary = "Check if bookmarked", description = "Checks whether a specific article is bookmarked by a user.")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Check if bookmarked", description = "Checks whether a specific article is bookmarked by the authenticated user.")
     public ResponseEntity<Boolean> isBookmarked(
-            @RequestParam UUID userId,
             @RequestParam UUID articleId) {
-        return ResponseEntity.ok(bookmarkService.isBookmarked(userId, articleId));
+        return ResponseEntity.ok(bookmarkService.isBookmarked(articleId));
     }
 }

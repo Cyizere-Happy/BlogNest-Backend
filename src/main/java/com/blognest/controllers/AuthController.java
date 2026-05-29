@@ -4,12 +4,16 @@ import com.blognest.dtos.CreateUserRequest;
 import com.blognest.dtos.LoginRequest;
 import com.blognest.dtos.LoginResponse;
 import com.blognest.dtos.UserResponse;
+import com.blognest.dtos.RegistrationResponse;
+import com.blognest.dtos.VerificationResponse;
+import com.blognest.mappers.UserMapper;
 import com.blognest.exceptions.ResourceNotFoundException;
 import com.blognest.exceptions.UnauthorizedException;
 import com.blognest.models.RefreshToken;
 import com.blognest.models.User;
 import com.blognest.repositories.RefreshTokenRepository;
 import com.blognest.repositories.UserRepository;
+import com.blognest.services.EmailService;
 import com.blognest.services.JwtService;
 import com.blognest.services.RateLimiterService;
 import com.blognest.services.UserService;
@@ -20,6 +24,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -47,15 +52,31 @@ public class AuthController {
     private final RefreshTokenRepository refreshTokenRepository;
     private final RateLimiterService rateLimiterService;
     private final ApplicationEventPublisher eventPublisher;
+    private final EmailService emailService;
+
+    @Value("${rate-limit.login.max:5}")
+    private int loginMaxAttempts;
+
+    @Value("${rate-limit.login.seconds:60}")
+    private long loginWindowSeconds;
+
+    @Value("${rate-limit.register.max:3}")
+    private int registerMaxAttempts;
+
+    @Value("${rate-limit.register.seconds:3600}")
+    private long registerWindowSeconds;
 
     @PostMapping("/register")
-    @Operation(summary = "Register user", description = "Registers a new user account on the platform.")
-    public ResponseEntity<UserResponse> register(@Valid @RequestBody CreateUserRequest request, HttpServletRequest servletRequest) {
+    @Operation(summary = "Register user", description = "Registers a new user account on the platform. Can optionally accept an invite token to register with a specific invited role (e.g. JUDGE).")
+    public ResponseEntity<RegistrationResponse> register(
+            @Valid @RequestBody CreateUserRequest request,
+            @RequestParam(value = "token", required = false) String inviteToken,
+            HttpServletRequest servletRequest) {
         String ip = getClientIp(servletRequest);
-        if (!rateLimiterService.tryConsume("register:" + ip, 3, 3600)) {
-            throw new com.blognest.exceptions.TooManyRequestsException("Too many registration attempts. Please try again in an hour.");
+        if (!rateLimiterService.tryConsume("register:" + ip, registerMaxAttempts, registerWindowSeconds)) {
+            throw new com.blognest.exceptions.TooManyRequestsException("Too many registration attempts. Please try again later.");
         }
-        UserResponse userResponse = userService.createUser(request);
+        UserResponse userResponse = userService.createUser(request, inviteToken);
         
         eventPublisher.publishEvent(new com.blognest.dtos.AuditEvent(
                 userResponse.getId(),
@@ -70,15 +91,90 @@ public class AuthController {
                 com.blognest.models.enums.SeverityLevel.INFO
         ));
 
+        // Generate email verification token
+        String token = jwtService.generateVerificationToken(userResponse.getUsername());
+        try {
+            String verifyLink = "http://localhost:8080/api/auth/verify?token=" + token;
+            emailService.sendSimpleEmail(
+                    userResponse.getEmail(),
+                    "Verify your BlogNest Email",
+                    "Thank you for registering at BlogNest! Please click the link below to verify your email and activate your account:\n\n" + verifyLink
+            );
+        } catch (Exception e) {
+            System.err.println("Failed to send verification email: " + e.getMessage());
+        }
+
+        RegistrationResponse registrationResponse = RegistrationResponse.builder()
+                .message("Registration successful! Please check your email to verify and activate your account.")
+                .user(userResponse)
+                .build();
+
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(userResponse);
+                .body(registrationResponse);
+    }
+
+    @GetMapping("/verify")
+    @Operation(summary = "Verify email", description = "Verifies a user's email address and activates their account using a verification token.")
+    public ResponseEntity<VerificationResponse> verifyEmail(@RequestParam String token) {
+        try {
+            if (jwtService.isTokenExpired(token)) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(VerificationResponse.builder()
+                                .success(false)
+                                .message("Verification token has expired. Please register again.")
+                                .build());
+            }
+
+            String username = jwtService.extractUsername(token);
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+            if (user.isVerified()) {
+                return ResponseEntity.ok(VerificationResponse.builder()
+                        .success(true)
+                        .message("Account is already verified.")
+                        .user(UserMapper.toResponse(user))
+                        .build());
+            }
+
+            user.setActive(true);
+            user.setVerified(true);
+            User savedUser = userRepository.save(user);
+
+            // Log auditing event
+            eventPublisher.publishEvent(new com.blognest.dtos.AuditEvent(
+                    user.getId(),
+                    user.getRole().name(),
+                    "USER_EMAIL_VERIFIED",
+                    user.getId(),
+                    "User",
+                    "false",
+                    "true",
+                    "127.0.0.1",
+                    true,
+                    com.blognest.models.enums.SeverityLevel.INFO
+            ));
+
+            return ResponseEntity.ok(VerificationResponse.builder()
+                    .success(true)
+                    .message("Email verified successfully! Your account is now active and you can log in.")
+                    .user(UserMapper.toResponse(savedUser))
+                    .build());
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(VerificationResponse.builder()
+                            .success(false)
+                            .message("Invalid verification token: " + e.getMessage())
+                            .build());
+        }
     }
 
     @PostMapping("/login")
     @Operation(summary = "Login user", description = "Authenticates user and returns access token in JSON body and refresh token in HttpOnly cookie.")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request, HttpServletRequest servletRequest, HttpServletResponse response) {
         String ip = getClientIp(servletRequest);
-        if (!rateLimiterService.tryConsume("login:" + ip, 5, 60)) {
+        if (!rateLimiterService.tryConsume("login:" + ip, loginMaxAttempts, loginWindowSeconds)) {
             eventPublisher.publishEvent(new com.blognest.dtos.AuditEvent(
                     null,
                     "NONE",
@@ -91,7 +187,7 @@ public class AuthController {
                     false,
                     com.blognest.models.enums.SeverityLevel.WARN
             ));
-            throw new com.blognest.exceptions.TooManyRequestsException("Too many login attempts. Please try again in a minute.");
+            throw new com.blognest.exceptions.TooManyRequestsException("Too many login attempts. Please try again later.");
         }
 
         try {

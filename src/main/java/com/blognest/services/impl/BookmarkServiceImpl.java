@@ -10,6 +10,7 @@ import com.blognest.models.User;
 import com.blognest.repositories.ArticleRepository;
 import com.blognest.repositories.BookmarkRepository;
 import com.blognest.repositories.UserRepository;
+import com.blognest.services.AuthService;
 import com.blognest.services.BookmarkService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,9 +26,11 @@ public class BookmarkServiceImpl implements BookmarkService {
     private final BookmarkRepository bookmarkRepository;
     private final UserRepository userRepository;
     private final ArticleRepository articleRepository;
+    private final AuthService authService;
 
     @Override
-    public BookmarkResponse addBookmark(UUID userId, UUID articleId) {
+    public BookmarkResponse addBookmark(UUID articleId) {
+        UUID userId = authService.getCurrentUserId();
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -49,7 +52,8 @@ public class BookmarkServiceImpl implements BookmarkService {
     }
 
     @Override
-    public void removeBookmark(UUID userId, UUID articleId) {
+    public void removeBookmark(UUID articleId) {
+        UUID userId = authService.getCurrentUserId();
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -64,7 +68,8 @@ public class BookmarkServiceImpl implements BookmarkService {
     }
 
     @Override
-    public List<BookmarkResponse> getUserBookmarks(UUID userId) {
+    public List<BookmarkResponse> getUserBookmarks() {
+        UUID userId = authService.getCurrentUserId();
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -76,7 +81,8 @@ public class BookmarkServiceImpl implements BookmarkService {
     }
 
     @Override
-    public boolean isBookmarked(UUID userId, UUID articleId) {
+    public boolean isBookmarked(UUID articleId) {
+        UUID userId = authService.getCurrentUserId();
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
