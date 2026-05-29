@@ -9,11 +9,11 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @RequiredArgsConstructor
 public class WebConfig implements WebMvcConfigurer {
 
-    private final UserContextInterceptor userContextInterceptor;
+//    private final UserContextInterceptor userContextInterceptor;
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(userContextInterceptor)
-                .addPathPatterns("/api/**");
+        // registry.addInterceptor(userContextInterceptor)
+        //        .addPathPatterns("/api/**");
     }
 }

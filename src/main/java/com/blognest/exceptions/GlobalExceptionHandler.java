@@ -47,6 +47,12 @@ public class GlobalExceptionHandler {
                 .body(errorBody("Invalid sort property: " + ex.getPropertyName(), HttpStatus.BAD_REQUEST));
     }
 
+    @ExceptionHandler(TooManyRequestsException.class)
+    public ResponseEntity<Map<String, Object>> handleTooManyRequests(TooManyRequestsException ex) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .body(errorBody(ex.getMessage(), HttpStatus.TOO_MANY_REQUESTS));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGeneric(Exception ex) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

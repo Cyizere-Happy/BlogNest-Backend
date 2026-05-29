@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,6 +24,7 @@ public class InviteController {
 
     // POST /api/invites?adminId={uuid}
     @PostMapping
+    @PreAuthorize("hasRole('SUPERADMIN') and @securityEvaluator.isSelf(#adminId)")
     @Operation(summary = "Send invite", description = "Generates and sends an invite token to a user's email address (restricted to administrators).")
     public ResponseEntity<InviteResponse> sendInvite(
             @RequestParam UUID adminId,
@@ -51,6 +53,7 @@ public class InviteController {
 
     // GET /api/invites
     @GetMapping
+    @PreAuthorize("hasRole('SUPERADMIN')")
     @Operation(summary = "Get all invites", description = "Retrieves all invites generated in the system.")
     public ResponseEntity<List<InviteResponse>> getAllInvites() {
         return ResponseEntity.ok(inviteService.getAllInvites());

@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -18,6 +19,7 @@ public class AdminController {
 
     // GET /api/admin/dashboard
     @GetMapping("/dashboard")
+    @PreAuthorize("hasRole('SUPERADMIN')")
     @Operation(summary = "Get dashboard statistics", description = "Retrieves statistics for the admin dashboard (e.g. counts of users, articles, etc.).")
     public ResponseEntity<AdminDashboardResponse> getDashboardStats() {
         return ResponseEntity.ok(adminService.getDashboardStats());

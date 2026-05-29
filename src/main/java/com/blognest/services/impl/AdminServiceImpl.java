@@ -22,7 +22,7 @@ public class AdminServiceImpl implements AdminService {
 
         long totalUsers = userRepository.count();
 
-        long totalWriters = userRepository.countByRole(Role.WRITER);
+        long totalWriters = userRepository.countByRole(Role.ADMIN);
 
         long totalArticles = articleRepository.count();
 

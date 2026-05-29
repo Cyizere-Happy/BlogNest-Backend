@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,6 +23,7 @@ public class NotificationController {
 
     // GET /api/notifications/user/{userId}
     @GetMapping("/user/{userId}")
+    @PreAuthorize("hasRole('SUPERADMIN') or @securityEvaluator.isSelf(#userId)")
     @Operation(summary = "Get user notifications", description = "Retrieves all notifications for a specific user.")
     public ResponseEntity<List<NotificationResponse>> getUserNotifications(
             @PathVariable UUID userId) {
@@ -30,6 +32,7 @@ public class NotificationController {
 
     // GET /api/notifications/user/{userId}/unread
     @GetMapping("/user/{userId}/unread")
+    @PreAuthorize("hasRole('SUPERADMIN') or @securityEvaluator.isSelf(#userId)")
     @Operation(summary = "Get unread notifications", description = "Retrieves only unread notifications for a specific user.")
     public ResponseEntity<List<NotificationResponse>> getUnreadNotifications(
             @PathVariable UUID userId) {
@@ -38,6 +41,7 @@ public class NotificationController {
 
     // GET /api/notifications/user/{userId}/type/{type}
     @GetMapping("/user/{userId}/type/{type}")
+    @PreAuthorize("hasRole('SUPERADMIN') or @securityEvaluator.isSelf(#userId)")
     @Operation(summary = "Get notifications by type", description = "Retrieves notifications filtered by type for a specific user.")
     public ResponseEntity<List<NotificationResponse>> getNotificationsByType(
             @PathVariable UUID userId,
@@ -47,6 +51,7 @@ public class NotificationController {
 
     // PATCH /api/notifications/{id}/read
     @PatchMapping("/{id}/read")
+    @PreAuthorize("hasRole('SUPERADMIN') or @securityEvaluator.isNotificationOwner(#id)")
     @Operation(summary = "Mark notification as read", description = "Marks a specific notification as read by its ID.")
     public ResponseEntity<com.blognest.dtos.ApiResponse> markAsRead(@PathVariable UUID id) {
         notificationService.markAsRead(id);
@@ -58,6 +63,7 @@ public class NotificationController {
 
     // PATCH /api/notifications/user/{userId}/read-all
     @PatchMapping("/user/{userId}/read-all")
+    @PreAuthorize("hasRole('SUPERADMIN') or @securityEvaluator.isSelf(#userId)")
     @Operation(summary = "Mark all notifications as read", description = "Marks all unread notifications for a user as read.")
     public ResponseEntity<com.blognest.dtos.ApiResponse> markAllAsRead(@PathVariable UUID userId) {
         notificationService.markAllAsRead(userId);

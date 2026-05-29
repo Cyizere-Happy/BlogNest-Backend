@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,6 +23,7 @@ public class BookmarkController {
 
     // POST /api/bookmarks?userId={uuid}&articleId={uuid}
     @PostMapping
+    @PreAuthorize("hasRole('SUPERADMIN') or @securityEvaluator.isSelf(#userId)")
     @Operation(summary = "Add bookmark", description = "Bookmarks an article for a user.")
     public ResponseEntity<BookmarkResponse> addBookmark(
             @RequestParam UUID userId,
@@ -32,6 +34,7 @@ public class BookmarkController {
 
     // DELETE /api/bookmarks?userId={uuid}&articleId={uuid}
     @DeleteMapping
+    @PreAuthorize("hasRole('SUPERADMIN') or @securityEvaluator.isSelf(#userId)")
     @Operation(summary = "Remove bookmark", description = "Removes a bookmarked article for a user.")
     public ResponseEntity<com.blognest.dtos.ApiResponse> removeBookmark(
             @RequestParam UUID userId,
@@ -45,6 +48,7 @@ public class BookmarkController {
 
     // GET /api/bookmarks/user/{userId}
     @GetMapping("/user/{userId}")
+    @PreAuthorize("hasRole('SUPERADMIN') or @securityEvaluator.isSelf(#userId)")
     @Operation(summary = "Get user bookmarks", description = "Retrieves all bookmarked articles for a specific user.")
     public ResponseEntity<List<BookmarkResponse>> getUserBookmarks(@PathVariable UUID userId) {
         return ResponseEntity.ok(bookmarkService.getUserBookmarks(userId));
@@ -52,6 +56,7 @@ public class BookmarkController {
 
     // GET /api/bookmarks/check?userId={uuid}&articleId={uuid}
     @GetMapping("/check")
+    @PreAuthorize("hasRole('SUPERADMIN') or @securityEvaluator.isSelf(#userId)")
     @Operation(summary = "Check if bookmarked", description = "Checks whether a specific article is bookmarked by a user.")
     public ResponseEntity<Boolean> isBookmarked(
             @RequestParam UUID userId,

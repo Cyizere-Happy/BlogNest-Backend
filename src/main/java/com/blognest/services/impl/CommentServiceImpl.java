@@ -98,8 +98,12 @@ public class CommentServiceImpl implements CommentService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Comment not found"));
 
-        // Validation: only author of the comment can delete it
-        if (comment.getUser() == null || !comment.getUser().getId().equals(userId)) {
+        User actor = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        // Validation: only author of the comment or SUPERADMIN can delete it
+        if (actor.getRole() != com.blognest.models.enums.Role.SUPERADMIN 
+                && (comment.getUser() == null || !comment.getUser().getId().equals(userId))) {
             throw new UnauthorizedException("You are not authorized to delete this comment.");
         }
 

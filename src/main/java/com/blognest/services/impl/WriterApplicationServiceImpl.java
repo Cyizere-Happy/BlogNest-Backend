@@ -78,8 +78,8 @@ public class WriterApplicationServiceImpl implements WriterApplicationService {
 
         User user = saved.getApplicant();
 
-        // ✅ Promote user to WRITER role
-        user.setRole(Role.WRITER);
+        // ✅ Promote user to ADMIN role
+        user.setRole(Role.ADMIN);
         userRepository.save(user);
 
         // 🔥 NOTIFICATION

@@ -6,6 +6,7 @@ import com.blognest.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Component;
 public class DatabaseSeeder implements CommandLineRunner {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public void run(String... args) throws Exception {
@@ -22,14 +24,14 @@ public class DatabaseSeeder implements CommandLineRunner {
                     .fullName("BlogNest Admin")
                     .username("admin")
                     .email("admin@blognest.com")
-                    .password("admin123")
+                    .password(passwordEncoder.encode("admin123"))
                     .bio("System Administrator")
-                    .role(Role.ADMIN)
+                    .role(Role.SUPERADMIN)
                     .verified(true)
                     .active(true)
                     .build();
             userRepository.save(admin);
-            log.info("Successfully seeded Admin user: admin/admin123");
+            log.info("Successfully seeded SuperAdmin user: admin/admin123");
         } else {
             log.info("Admin user already exists, skipping seeding.");
         }

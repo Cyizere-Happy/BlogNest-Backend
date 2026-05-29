@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,6 +23,7 @@ public class SubscriptionController {
 
     // POST /api/subscriptions?subscriberId={uuid}&writerId={uuid}
     @PostMapping
+    @PreAuthorize("hasRole('SUPERADMIN') or @securityEvaluator.isSelf(#subscriberId)")
     @Operation(summary = "Subscribe to writer", description = "Subscribes a user to updates from a specific writer.")
     public ResponseEntity<SubscriptionResponse> subscribe(
             @RequestParam UUID subscriberId,
@@ -32,6 +34,7 @@ public class SubscriptionController {
 
     // DELETE /api/subscriptions?subscriberId={uuid}&writerId={uuid}
     @DeleteMapping
+    @PreAuthorize("hasRole('SUPERADMIN') or @securityEvaluator.isSelf(#subscriberId)")
     @Operation(summary = "Unsubscribe from writer", description = "Unsubscribes a user from updates from a specific writer.")
     public ResponseEntity<com.blognest.dtos.ApiResponse> unsubscribe(
             @RequestParam UUID subscriberId,
@@ -45,6 +48,7 @@ public class SubscriptionController {
 
     // GET /api/subscriptions/writer/{writerId}/subscribers
     @GetMapping("/writer/{writerId}/subscribers")
+    @PreAuthorize("hasRole('SUPERADMIN') or @securityEvaluator.isSelf(#writerId)")
     @Operation(summary = "Get writer subscribers", description = "Retrieves all subscribers for a specific writer.")
     public ResponseEntity<List<SubscriptionResponse>> getWriterSubscribers(
             @PathVariable UUID writerId) {
@@ -53,6 +57,7 @@ public class SubscriptionController {
 
     // GET /api/subscriptions/user/{subscriberId}/following
     @GetMapping("/user/{subscriberId}/following")
+    @PreAuthorize("hasRole('SUPERADMIN') or @securityEvaluator.isSelf(#subscriberId)")
     @Operation(summary = "Get subscribed writers", description = "Retrieves all subscriptions (writers followed) for a user.")
     public ResponseEntity<List<SubscriptionResponse>> getUserSubscriptions(
             @PathVariable UUID subscriberId) {

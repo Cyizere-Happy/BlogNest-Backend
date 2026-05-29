@@ -12,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -26,6 +27,7 @@ public class ArticleController {
 
     // POST /api/articles?authorId={uuid}
     @PostMapping
+    @PreAuthorize("hasRole('SUPERADMIN') or (hasRole('ADMIN') and @securityEvaluator.isSelf(#authorId))")
     @Operation(summary = "Create article", description = "Creates a new article post authored by the specified user ID.")
     public ResponseEntity<ArticleResponse> createArticle(
             @RequestParam UUID authorId,
@@ -91,6 +93,7 @@ public class ArticleController {
 
     // PUT /api/articles/{id}
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('SUPERADMIN') or @securityEvaluator.isArticleAuthor(#id)")
     @Operation(summary = "Update article", description = "Updates details (title, content, category, tags, status) of an existing article.")
     public ResponseEntity<ArticleResponse> updateArticle(
             @PathVariable UUID id,
@@ -100,6 +103,7 @@ public class ArticleController {
 
     // DELETE /api/articles/{id}
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('SUPERADMIN') or @securityEvaluator.isArticleAuthor(#id)")
     @Operation(summary = "Delete article", description = "Deletes an article from the system.")
     public ResponseEntity<com.blognest.dtos.ApiResponse> deleteArticle(@PathVariable UUID id) {
         articleService.deleteArticle(id);

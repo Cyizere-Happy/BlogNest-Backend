@@ -41,6 +41,16 @@ public class User {
 
     private boolean active = true;
 
+    public boolean isEnabled() {
+        return active;
+    }
+
+    private boolean accountLocked = false;
+
+    private boolean expired = false;
+
+    private boolean credentialsExpired = false;
+
     @Enumerated(EnumType.STRING)
     private Role role = Role.USER;
 

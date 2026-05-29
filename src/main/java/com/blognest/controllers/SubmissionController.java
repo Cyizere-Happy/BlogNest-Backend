@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,6 +24,7 @@ public class SubmissionController {
 
     // POST /api/submissions?writerId={uuid}&competitionId={uuid}
     @PostMapping
+    @PreAuthorize("hasRole('SUPERADMIN') or @securityEvaluator.isSelf(#writerId)")
     @Operation(summary = "Submit to competition", description = "Submits a story/article to an active writing competition.")
     public ResponseEntity<SubmissionResponse> submit(
             @RequestParam UUID writerId,
@@ -34,6 +36,7 @@ public class SubmissionController {
 
     // GET /api/submissions/competition/{competitionId}
     @GetMapping("/competition/{competitionId}")
+    @PreAuthorize("hasRole('SUPERADMIN')")
     @Operation(summary = "Get submissions by competition", description = "Retrieves all submissions made to a specific competition.")
     public ResponseEntity<List<SubmissionResponse>> getByCompetition(
             @PathVariable UUID competitionId) {
@@ -42,6 +45,7 @@ public class SubmissionController {
 
     // GET /api/submissions/writer/{writerId}
     @GetMapping("/writer/{writerId}")
+    @PreAuthorize("hasRole('SUPERADMIN') or @securityEvaluator.isSelf(#writerId)")
     @Operation(summary = "Get submissions by writer", description = "Retrieves all submissions made by a specific writer.")
     public ResponseEntity<List<SubmissionResponse>> getByWriter(@PathVariable UUID writerId) {
         return ResponseEntity.ok(submissionService.getByWriter(writerId));
@@ -49,6 +53,7 @@ public class SubmissionController {
 
     // PATCH /api/submissions/{id}/score?score={value}
     @PatchMapping("/{id}/score")
+    @PreAuthorize("hasRole('SUPERADMIN')")
     @Operation(summary = "Score submission", description = "Grades/scores a submission. Used by admins or reviewers.")
     public ResponseEntity<SubmissionResponse> scoreSubmission(
             @PathVariable UUID id,
@@ -58,6 +63,7 @@ public class SubmissionController {
 
     // PATCH /api/submissions/{id}/approve
     @PatchMapping("/{id}/approve")
+    @PreAuthorize("hasRole('SUPERADMIN')")
     @Operation(summary = "Approve submission", description = "Approves a submission for a competition.")
     public ResponseEntity<SubmissionResponse> approveSubmission(@PathVariable UUID id) {
         return ResponseEntity.ok(submissionService.approveSubmission(id));

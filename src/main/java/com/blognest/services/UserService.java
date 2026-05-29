@@ -18,4 +18,8 @@ public interface UserService {
     UserResponse updateUser(UUID id, UpdateUserRequest request);
 
     void deleteUser(UUID id);
+
+    UserResponse updateRole(UUID id, com.blognest.models.enums.Role role);
+
+    UserResponse toggleSuspension(UUID id, boolean suspended);
 }
