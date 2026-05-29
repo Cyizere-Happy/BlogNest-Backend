@@ -1,6 +1,7 @@
 package com.blognest.services.impl;
 
 import com.blognest.dtos.AdminDashboardResponse;
+import com.blognest.models.enums.Role;
 import com.blognest.repositories.*;
 import com.blognest.services.AdminService;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +22,7 @@ public class AdminServiceImpl implements AdminService {
 
         long totalUsers = userRepository.count();
 
-        long totalWriters = userRepository.countByIsWriterTrue();
+        long totalWriters = userRepository.countByRole(Role.WRITER);
 
         long totalArticles = articleRepository.count();
 

@@ -10,23 +10,19 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CommentResponse {
+public class BookmarkResponse {
 
     private UUID id;
 
-    private String content;
+    private UUID userId;
 
     private UUID articleId;
 
     private String articleTitle;
 
-    private UUID userId;
+    private String articleSlug;
 
-    private String username;
+    private String authorName;
 
-    private UUID parentId;
-
-    private boolean deleted;
-
-    private LocalDateTime createdAt;
+    private LocalDateTime savedAt;
 }

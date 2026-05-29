@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Writer Application Status</title>
+</head>
+<body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background-color: #f8f9fa; color: #333333; margin: 0;">
+
+<div style="max-width: 600px; margin: 40px auto; background: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-top: 4px solid #dc3545;">
+
+  <h2 style="color: #dc3545; margin-top: 0; font-size: 24px; font-weight: 600;">
+    Writer Application Update
+  </h2>
+
+  <p style="font-size: 16px; line-height: 1.5; color: #495057;">Hello <b th:text="${username}">User</b>,</p>
+
+  <p style="font-size: 15px; line-height: 1.6; color: #495057;">
+    Thank you for your interest in contributing to BlogNest as a writer and for taking the time to submit your application.
+  </p>
+
+  <p style="font-size: 15px; line-height: 1.6; color: #495057;">
+    After carefully reviewing your writing sample and motivation, we regret to inform you that we are unable to approve your writer application at this time.
+  </p>
+
+  <p style="font-size: 15px; line-height: 1.6; color: #495057;">
+    We encourage you to continue developing your writing profile and to apply again in the future when you have new writing samples to share.
+  </p>
+
+  <hr style="border: 0; border-top: 1px solid #dee2e6; margin: 25px 0;">
+
+  <p style="font-size: 13px; line-height: 1.5; color: #6c757d; margin-bottom: 0;">
+    Best regards,<br>
+    <strong>The BlogNest Editorial Team</strong>
+  </p>
+
+</div>
+
+</body>
+</html>

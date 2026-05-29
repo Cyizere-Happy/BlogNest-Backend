@@ -6,6 +6,7 @@ import com.blognest.exceptions.ResourceNotFoundException;
 import com.blognest.mappers.WriterApplicationMapper;
 import com.blognest.models.*;
 import com.blognest.models.enums.NotificationType;
+import com.blognest.models.enums.Role;
 import com.blognest.repositories.WriterApplicationRepository;
 import com.blognest.repositories.UserRepository;
 import com.blognest.services.EmailService;
@@ -77,6 +78,10 @@ public class WriterApplicationServiceImpl implements WriterApplicationService {
 
         User user = saved.getApplicant();
 
+        // ✅ Promote user to WRITER role
+        user.setRole(Role.WRITER);
+        userRepository.save(user);
+
         // 🔥 NOTIFICATION
         notificationService.createNotification(
                 user.getId(),
@@ -123,6 +128,22 @@ public class WriterApplicationServiceImpl implements WriterApplicationService {
                 "Unfortunately your application was not approved.",
                 NotificationType.SUBSCRIPTION
         );
+
+        // 🔥 EMAIL NOTIFICATION
+        try {
+            Context context = new Context();
+            context.setVariable("username", user.getFullName());
+
+            emailService.sendTemplateEmail(
+                    user.getEmail(),
+                    "Writer Application Update",
+                    "email/writer-rejected",
+                    context
+            );
+
+        } catch (Exception e) {
+            System.out.println("Writer rejection email failed: " + e.getMessage());
+        }
 
         return WriterApplicationMapper.toResponse(saved);
     }

@@ -39,5 +39,7 @@ public class ArticleResponse {
 
     private String authorName;
 
+    private java.util.Set<String> tags;
+
     private LocalDateTime createdAt;
 }

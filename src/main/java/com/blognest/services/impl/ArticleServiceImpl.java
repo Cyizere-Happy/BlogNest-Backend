@@ -7,12 +7,16 @@ import com.blognest.exceptions.ResourceNotFoundException;
 import com.blognest.mappers.ArticleMapper;
 import com.blognest.models.*;
 import com.blognest.models.enums.NotificationType;
+import com.blognest.models.enums.ArticleCategory;
 import com.blognest.repositories.*;
 import com.blognest.services.EmailService;
 import com.blognest.services.NotificationService;
 import com.blognest.services.ArticleService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.context.Context;
 
 import java.util.List;
@@ -27,15 +31,17 @@ public class ArticleServiceImpl implements ArticleService {
     private final SubscriptionRepository subscriptionRepository;
     private final NotificationService notificationService;
     private final EmailService emailService;
+    private final TagRepository tagRepository;
 
     @Override
+    @Transactional
     public ArticleResponse createArticle(UUID authorId, CreateArticleRequest request) {
-
         User author = userRepository.findById(authorId)
                 .orElseThrow(() -> new ResourceNotFoundException("Author not found"));
 
         Article article = ArticleMapper.toEntity(request, author);
         article.setSlug(generateSlug(request.getTitle()));
+        article.setTags(getOrCreateTags(request.getTags()));
 
         Article saved = articleRepository.save(article);
 
@@ -47,24 +53,22 @@ public class ArticleServiceImpl implements ArticleService {
     }
 
     @Override
-    public List<ArticleResponse> getAllArticles() {
-        return articleRepository.findAll()
-                .stream()
-                .map(ArticleMapper::toResponse)
-                .toList();
+    @Transactional(readOnly = true)
+    public Page<ArticleResponse> getAllArticles(Pageable pageable) {
+        return articleRepository.findAll(pageable)
+                .map(ArticleMapper::toResponse);
     }
 
     @Override
-    public List<ArticleResponse> getPublishedArticles() {
-        return articleRepository.findByPublishedTrue()
-                .stream()
-                .map(ArticleMapper::toResponse)
-                .toList();
+    @Transactional(readOnly = true)
+    public Page<ArticleResponse> getPublishedArticles(Pageable pageable) {
+        return articleRepository.findByPublishedTrue(pageable)
+                .map(ArticleMapper::toResponse);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ArticleResponse getArticleById(UUID id) {
-
         Article article = articleRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Article not found"));
 
@@ -72,8 +76,8 @@ public class ArticleServiceImpl implements ArticleService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ArticleResponse getArticleBySlug(String slug) {
-
         Article article = articleRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Article not found"));
 
@@ -81,8 +85,8 @@ public class ArticleServiceImpl implements ArticleService {
     }
 
     @Override
+    @Transactional
     public ArticleResponse updateArticle(UUID id, UpdateArticleRequest request) {
-
         Article article = articleRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Article not found"));
 
@@ -107,6 +111,10 @@ public class ArticleServiceImpl implements ArticleService {
             article.setPublished(request.getPublished());
         }
 
+        if (request.getTags() != null) {
+            article.setTags(getOrCreateTags(request.getTags()));
+        }
+
         Article updated = articleRepository.save(article);
 
         if (updated.isPublished()) {
@@ -117,23 +125,71 @@ public class ArticleServiceImpl implements ArticleService {
     }
 
     @Override
+    @Transactional
     public void deleteArticle(UUID id) {
-
         Article article = articleRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Article not found"));
 
         articleRepository.delete(article);
     }
 
-    private void publishArticleEvent(Article article) {
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ArticleResponse> getArticlesByAuthor(UUID authorId, Pageable pageable) {
+        User author = userRepository.findById(authorId)
+                .orElseThrow(() -> new ResourceNotFoundException("Author not found"));
 
+        return articleRepository.findByAuthor(author, pageable)
+                .map(ArticleMapper::toResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ArticleResponse> getArticlesByCategory(ArticleCategory category, Pageable pageable) {
+        return articleRepository.findByCategory(category, pageable)
+                .map(ArticleMapper::toResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ArticleResponse> getArticlesByTag(String tagName, Pageable pageable) {
+        return articleRepository.findByTags_NameIgnoreCase(tagName.trim(), pageable)
+                .map(ArticleMapper::toResponse);
+    }
+
+    private java.util.Set<Tag> getOrCreateTags(java.util.Set<String> tagNames) {
+        if (tagNames == null || tagNames.isEmpty()) {
+            return new java.util.HashSet<>();
+        }
+
+        if (tagNames.size() > 5) {
+            throw new IllegalArgumentException("An article can have a maximum of 5 tags.");
+        }
+
+        java.util.Set<Tag> tags = new java.util.HashSet<>();
+        for (String name : tagNames) {
+            if (name == null || name.trim().isEmpty()) {
+                continue;
+            }
+            String normalized = name.trim().toLowerCase();
+            if (normalized.length() > 30) {
+                throw new IllegalArgumentException("Tag name cannot exceed 30 characters: " + name);
+            }
+
+            Tag tag = tagRepository.findByNameIgnoreCase(normalized)
+                    .orElseGet(() -> tagRepository.save(Tag.builder().name(normalized).build()));
+            tags.add(tag);
+        }
+        return tags;
+    }
+
+    private void publishArticleEvent(Article article) {
         User writer = article.getAuthor();
 
         List<Subscription> subscribers =
                 subscriptionRepository.findByWriter(writer);
 
         for (Subscription sub : subscribers) {
-
             User user = sub.getSubscriber();
 
             // 1. NOTIFICATION

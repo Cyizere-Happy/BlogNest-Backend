@@ -13,5 +13,7 @@ public class CreateCommentRequest {
 
     private UUID articleId;
 
+    private UUID parentId;
+
     private String content;
 }

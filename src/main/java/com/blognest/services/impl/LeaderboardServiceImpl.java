@@ -3,7 +3,9 @@ package com.blognest.services.impl;
 import com.blognest.dtos.LeaderboardEntryResponse;
 import com.blognest.dtos.CompetitionWinnerResponse;
 import com.blognest.exceptions.ResourceNotFoundException;
+import com.blognest.models.Competition;
 import com.blognest.models.Submission;
+import com.blognest.repositories.CompetitionRepository;
 import com.blognest.repositories.SubmissionRepository;
 import com.blognest.services.LeaderboardService;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class LeaderboardServiceImpl implements LeaderboardService {
 
     private final SubmissionRepository submissionRepository;
+    private final CompetitionRepository competitionRepository;
 
     @Override
     public List<LeaderboardEntryResponse> getLeaderboard(UUID competitionId) {
@@ -46,6 +49,9 @@ public class LeaderboardServiceImpl implements LeaderboardService {
     @Override
     public CompetitionWinnerResponse getWinners(UUID competitionId) {
 
+        Competition competition = competitionRepository.findById(competitionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Competition not found"));
+
         List<LeaderboardEntryResponse> leaderboard = getLeaderboard(competitionId);
 
         if (leaderboard.isEmpty()) {
@@ -59,7 +65,7 @@ public class LeaderboardServiceImpl implements LeaderboardService {
 
         return CompetitionWinnerResponse.builder()
                 .competitionId(competitionId)
-                .competitionTitle("Competition") // can be improved later
+                .competitionTitle(competition.getTitle())
                 .winners(winners)
                 .build();
     }

@@ -19,4 +19,6 @@ public class UpdateArticleRequest {
     private ArticleCategory category;
 
     private Boolean published;
+
+    private java.util.Set<String> tags;
 }

@@ -9,11 +9,13 @@ public class CommentMapper {
 
         return CommentResponse.builder()
                 .id(comment.getId())
-                .content(comment.getContent())
+                .content(comment.isDeleted() ? "[This comment has been deleted]" : comment.getContent())
                 .articleId(comment.getArticle().getId())
                 .articleTitle(comment.getArticle().getTitle())
-                .userId(comment.getUser().getId())
-                .username(comment.getUser().getUsername())
+                .userId(comment.getUser() != null ? comment.getUser().getId() : null)
+                .username(comment.getUser() != null ? comment.getUser().getUsername() : "[deleted]")
+                .parentId(comment.getParent() != null ? comment.getParent().getId() : null)
+                .deleted(comment.isDeleted())
                 .createdAt(comment.getCreatedAt())
                 .build();
     }

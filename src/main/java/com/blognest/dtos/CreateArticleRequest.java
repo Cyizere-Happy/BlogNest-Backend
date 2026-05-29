@@ -22,4 +22,6 @@ public class CreateArticleRequest {
     private ArticleCategory category;
 
     private boolean published;
+
+    private java.util.Set<String> tags;
 }

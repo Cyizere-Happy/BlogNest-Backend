@@ -41,6 +41,11 @@ public class ArticleMapper {
                 .readingTime(article.getReadingTime())
                 .authorId(article.getAuthor().getId())
                 .authorName(article.getAuthor().getFullName())
+                .tags(article.getTags() != null ?
+                        article.getTags().stream()
+                                .map(com.blognest.models.Tag::getName)
+                                .collect(java.util.stream.Collectors.toSet())
+                        : java.util.Collections.emptySet())
                 .createdAt(article.getCreatedAt())
                 .build();
     }
